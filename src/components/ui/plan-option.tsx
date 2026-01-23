@@ -3,28 +3,61 @@
 import { useState } from 'react';
 import { BillingCycle } from '../../../types';
 import React from 'react';
-import { PlanDetails, PlanTier } from '../../../types';
+import {
+  PossibleSubscriptionPlans,
+  VideoSubscriptionPlan,
+} from '@/app/domain/entities/Subscription';
+import {
+  isVideoSubscriptionPlan,
+  // isAudioSubscriptionPlan,
+  // validatePlanTypeForCategory,
+} from '@/app/domain/helpers/getSubscriptionPlanByCategory';
+import { PlanProperties } from './PlanProperties';
+import { Categories } from '@/app/domain/entities/Platform';
 
 interface PlanOptionProps {
-  plan: PlanDetails;
+  category: Categories;
+  plan: PossibleSubscriptionPlans;
   isSelected: boolean;
-  onSelect: (tier: PlanTier) => void;
+  onSelect: (planName: string) => void;
   children?: React.ReactNode;
 }
 
-export function PlanOption({ plan, isSelected, onSelect }: PlanOptionProps) {
+export function PlanOption({
+  category,
+  plan,
+  isSelected,
+  onSelect,
+}: PlanOptionProps) {
   const [billingCycle, setBillingCycle] = useState<BillingCycle>(
     BillingCycle.MONTHLY,
   );
-  const [sharingCount, setSharingCount] = useState(2);
+  const [sharingCount, setSharingCount] = useState(1);
   const [isExpanded, setIsExpanded] = useState(false);
+
+  const isVideo = isVideoSubscriptionPlan(plan);
+
+  const planData = new VideoSubscriptionPlan(
+    plan.id,
+    plan.price,
+    //eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (plan as any).planName,
+    //eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (plan as any).maxParticipants,
+    plan.color,
+    plan.glowClass,
+    plan.subscriptionColor,
+    plan.subscriptionGlowClass,
+    isVideo ? plan.screensAllowed : 0,
+    isVideo ? plan.resolution : 'N/A',
+  );
 
   const colorClass = plan.color;
   const borderColor = `${plan.glowClass} shadow-[0_0_25px_rgba(59,130,246,0.3)]`;
 
   const planSelection = () => {
     setIsExpanded(!isExpanded);
-    if (!isSelected) onSelect(plan.tier);
+    if (!isSelected) onSelect(planData.getName());
   };
 
   if (isSelected && isExpanded) {
@@ -36,10 +69,11 @@ export function PlanOption({ plan, isSelected, onSelect }: PlanOptionProps) {
         <div className='flex items-center justify-between'>
           <div className='flex flex-col text-left'>
             <span className='text-white font-bold text-base'>
-              {plan.tier.charAt(0) + plan.tier.slice(1).toLowerCase()}
+              {planData.getName().charAt(0) +
+                planData.getName().slice(1).toLowerCase()}
             </span>
             <span className='text-white/80 text-[10px]'>
-              {plan.resolution} • {plan.screens} Screens
+              {plan.resolution} • {Number(planData.getMaxParticipants())} Users
             </span>
           </div>
           <div className='text-right flex items-center gap-3'>
@@ -144,12 +178,14 @@ export function PlanOption({ plan, isSelected, onSelect }: PlanOptionProps) {
       <div className='flex items-center justify-between w-full'>
         <div className='flex flex-col text-left'>
           <span className={`${colorClass} font-semibold text-sm`}>
-            {plan.tier.charAt(0) + plan.tier.slice(1).toLowerCase()}
+            {planData.getName().charAt(0) +
+              planData.getName().slice(1).toLowerCase()}
           </span>
-          <span className='text-white/50 text-[10px]'>
-            {plan.resolution} • {plan.screens} Screen
-            {plan.screens > 1 ? 's' : ''}
-          </span>
+          <PlanProperties
+            category={category}
+            plan={plan}
+            maxParticipants={Number(planData.getMaxParticipants())}
+          />
         </div>
         <div className='text-right'>
           <span className={`${colorClass} font-bold text-sm`}>

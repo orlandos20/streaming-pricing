@@ -2,58 +2,47 @@
 
 import { useState } from 'react';
 import {
-  Subscription,
-  PLAN_DATA,
+  // Subscription,
+  // PLAN_DATA,
   PlanTier,
   // BillingCycle,
 } from '../../../types';
 import { PlanOption } from '../ui/plan-option';
+import ActiveBadge from './ActiveBadge';
+import { Platform } from '@/app/domain/entities/Platform';
+import { SubscriptionPlan } from '@/app/domain/entities/Subscription';
 
 interface ManagePlanModalProps {
-  subscription: Subscription;
+  platform: Platform;
   onClose: () => void;
 }
 
-const PLANS: typeof PLAN_DATA = {
-  [PlanTier.BASIC]: {
-    tier: PlanTier.BASIC,
-    price: 9.99,
-    resolution: '720p',
-    screens: 1,
-    color: 'emerald-400',
-    glowClass: 'border-emerald-500/30 neon-emerald-glow bg-white/10',
-  },
-  [PlanTier.STANDARD]: {
-    tier: PlanTier.STANDARD,
-    price: 15.49,
-    resolution: '1080p',
-    screens: 2,
-    // color: 'blue-accent-500',
-    color: 'blue-500',
-    glowClass: 'border-blue-500/60 neon-blue-glow bg-white/10',
-  },
-  [PlanTier.PREMIUM]: {
-    tier: PlanTier.PREMIUM,
-    price: 22.99,
-    resolution: '4K + HDR',
-    screens: 4,
-    color: 'amber-400',
-    glowClass: 'border-amber-500/30 neon-amber-glow bg-white/10',
-  },
-};
-
 const ManagePlanModal: React.FC<ManagePlanModalProps> = ({
-  subscription,
+  platform,
   onClose,
 }) => {
   const [selectedPlanTier, setSelectedPlanTier] = useState<string>(
     PlanTier.STANDARD,
   );
-  // const [billingCycle, setBillingCycle] = useState<BillingCycle>(
-  //   BillingCycle.MONTHLY,
-  // );
+
   // const [isAiLoading, setIsAiLoading] = useState(false);
   // const [aiMessage, setAiMessage] = useState<string | null>(null);
+
+  const buildPlan = (plan: SubscriptionPlan) =>
+    new SubscriptionPlan(
+      plan.id,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (plan as any).price,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (plan as any).planName,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (plan as any).maxParticipants,
+      plan.color,
+      plan.glowClass,
+      plan.subscriptionColor,
+      plan.subscriptionGlowClass,
+      plan.resolution,
+    );
 
   return (
     <div className='fixed inset-0 z-100 flex items-center justify-center xs:p-6 animate-in fade-in duration-300'>
@@ -73,13 +62,13 @@ const ManagePlanModal: React.FC<ManagePlanModalProps> = ({
         {/* Service Icon */}
         <div className='flex flex-col items-center xs:gap-4 md:gap-1'>
           <div
-            className={`${subscription.color} w-20 h-20 rounded-3xl flex items-center justify-center shadow-2xl border border-white/10 xs:text-4xl font-black text-white`}
+            className={`${platform.color} w-20 h-20 rounded-3xl flex items-center justify-center shadow-2xl border border-white/10 xs:text-4xl font-black text-white`}
           >
-            {subscription.iconType === 'letter' ? (
-              subscription.iconValue
+            {platform.iconType === 'letter' ? (
+              platform.iconValue
             ) : (
               <span className='material-symbols-outlined text-5xl'>
-                {subscription.iconValue}
+                {platform.iconValue}
               </span>
             )}
           </div>
@@ -95,23 +84,19 @@ const ManagePlanModal: React.FC<ManagePlanModalProps> = ({
 
         {/* Plans Selection */}
         <div className='w-full space-y-3'>
-          {Object.values(PLANS).map((plan) => {
-            const isSelected = plan.tier === selectedPlanTier;
+          {Object.values(platform.plans).map((plan) => {
+            const planData = buildPlan(plan);
+            const isSelected = String(planData.getName()) === selectedPlanTier;
 
             return (
-              <div className='relative' key={plan.tier}>
+              <div className='relative' key={String(planData.getName())}>
                 <PlanOption
+                  category={platform.category}
                   plan={plan}
                   isSelected={isSelected}
                   onSelect={setSelectedPlanTier}
                 ></PlanOption>
-                {isSelected && (
-                  <div className='flex absolute -top-1.5 -right-1.5 bg-blue-500 rounded-full p-0.5 shadow-lg'>
-                    <span className='material-symbols-outlined text-white text-[12px] font-black block'>
-                      check
-                    </span>
-                  </div>
-                )}
+                <ActiveBadge show={isSelected} />
               </div>
             );
           })}
@@ -123,7 +108,7 @@ const ManagePlanModal: React.FC<ManagePlanModalProps> = ({
             className='w-full py-4 rounded-2xl bg-linear-to-r from-blue-600 via-indigo-600 to-purple-600 text-white font-bold text-lg shadow-xl shadow-blue-500/20 active:scale-[0.98] transition-all border border-white/20'
             onClick={onClose}
           >
-            Confirm Plan
+            Lo tengo
           </button>
           <p className='text-white/30 text-[9px] text-center mt-6 px-6 uppercase tracking-[0.2em] leading-relaxed font-bold'>
             Changes apply from the next billing cycle on March 15
