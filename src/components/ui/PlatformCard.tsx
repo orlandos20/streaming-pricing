@@ -1,6 +1,6 @@
 import { Platform } from '@/app/domain/entities/Platform';
 import ActiveBadge from './ActiveBadge';
-import { Country } from '../../../types';
+import { Country } from '@/app/domain/entities/Country';
 
 interface PlatformCardProps {
   platform?: Platform;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Country } from '../../../types';
+import { Country } from '@/app/domain/entities/Country';
 
 interface DashboardSummaryCardProps {
   totalMonthly: number;
@@ -22,14 +22,14 @@ const DashboardSummaryCard: React.FC<DashboardSummaryCardProps> = ({
         </p>
         <div className='flex items-baseline gap-2 mb-6'>
           <span className='text-white/40 text-2xl font-light'>
-            {country?.currencySymbol}
+            {country?.currency?.symbol}
           </span>
 
           <h1 className='glass-text text-5xl font-extrabold tracking-tight'>
             {totalMonthly}
           </h1>
           <span className='text-white/30 text-xs font-bold uppercase tracking-widest ml-1'>
-            {country?.currency}
+            {country?.currency?.code}
           </span>
         </div>
 

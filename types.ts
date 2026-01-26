@@ -69,11 +69,3 @@ export const PLAN_DATA: Record<PlanTier, PlanDetails> = {
     glowClass: 'neon-amber-glow',
   },
 };
-
-export interface Country {
-  countryName: string;
-  countryIcon: string;
-  countryCode?: string;
-  currency?: string;
-  currencySymbol?: string;
-}

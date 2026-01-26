@@ -9,12 +9,17 @@ import ManagePlanModal from '@/components/ui/manage-plan-modal';
 
 import { useStreaming } from '@/app/application/contexts/streaming-context';
 import { buildPlatform } from '@/lib/platforms';
+import { useUser } from '@/app/application/contexts/user-context';
 
 const Dashboard = () => {
   const {
     state: { platforms, country: selectedCountry, categories },
     setState,
   } = useStreaming();
+
+  const {
+    state: { country: userCountry },
+  } = useUser();
 
   const [selectedPlatform, setSelectedPlatform] = useState<Platform>();
   const [activeCategory, setActiveCategory] = useState<string>(categories[1]);
@@ -93,7 +98,7 @@ const Dashboard = () => {
       <DashboardSummaryCard
         totalMonthly={totalMonthly}
         nextRenewalDate='March 15, 2024'
-        country={selectedCountry}
+        country={userCountry}
       />
 
       <DashboardCategoryFilters
