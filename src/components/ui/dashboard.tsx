@@ -8,6 +8,7 @@ import DashboardCategoryFilters from './dashboard-category-filters';
 import ManagePlanModal from '@/components/ui/manage-plan-modal';
 
 import { useStreaming } from '@/app/application/contexts/streaming-context';
+import { buildPlatform } from '@/lib/platforms';
 
 const Dashboard = () => {
   const {
@@ -48,23 +49,7 @@ const Dashboard = () => {
     // Logic to deactivate the platform
     const newPlatforms = platforms.map((currentPlatform) => {
       if (currentPlatform.id === selectedPlatform.id) {
-        return new Platform(
-          currentPlatform.id,
-          //eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (currentPlatform as any).name,
-          false, // Set active to false
-          currentPlatform.category,
-          currentPlatform.billingCycleOptions,
-          currentPlatform.billingCycle,
-          currentPlatform.currentPlanTier,
-          currentPlatform.renewalDate,
-          currentPlatform.daysLeft,
-          currentPlatform.iconType,
-          currentPlatform.iconValue,
-          currentPlatform.color,
-          currentPlatform.plans,
-          currentPlatform?.glowClass,
-        );
+        return buildPlatform({ ...currentPlatform, active: false } as Platform);
       }
       return currentPlatform;
     });
@@ -73,8 +58,6 @@ const Dashboard = () => {
       ...prevState,
       platforms: newPlatforms,
     }));
-
-    // setPlatforms(newPlatforms);
 
     handleCloseModal();
   };
@@ -83,40 +66,23 @@ const Dashboard = () => {
     selectedPlatform: Platform,
     selectedPlanTier: string,
   ) => {
-    console.log('selectedPlatform --> ', selectedPlatform);
     // Logic to set the platform as active
     const newPlatforms = platforms.map((currentPlatform) => {
       if (currentPlatform.id === selectedPlatform.id) {
-        return new Platform(
-          currentPlatform.id,
-          //eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (currentPlatform as any).name,
-          true, // Set active to true
-          currentPlatform.category,
-          currentPlatform.billingCycleOptions,
-          currentPlatform.billingCycle,
-          selectedPlanTier, // Update current plan tier
-          currentPlatform.renewalDate,
-          currentPlatform.daysLeft,
-          currentPlatform.iconType,
-          currentPlatform.iconValue,
-          currentPlatform.color,
-          currentPlatform.plans,
-          currentPlatform?.glowClass,
-        );
+        return buildPlatform({
+          ...currentPlatform,
+          active: true,
+          currentPlanTier: selectedPlanTier,
+        } as Platform);
       }
 
       return currentPlatform;
     });
 
-    console.log('newPlatforms --> ', newPlatforms);
-
     setState((prevState) => ({
       ...prevState,
       platforms: newPlatforms,
     }));
-
-    // setPlatforms(newPlatforms);
 
     // Close the modal after setting the platform as active
     handleCloseModal();
@@ -149,7 +115,7 @@ const Dashboard = () => {
       <div className='px-4 flex flex-col gap-3'>
         {filteredPlatforms.map((platform) => (
           <PlatformCard
-            key={String(platform.id)}
+            key={platform.getId()}
             platform={platform}
             country={selectedCountry}
             onSelectPlatform={() => handlePlatformSelect(platform)}

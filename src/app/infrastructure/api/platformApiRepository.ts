@@ -1,7 +1,8 @@
 // infrastructure/api/PlatformApiRepository.ts
 import { PlatformRepository } from '../../domain/repositories/platformRepository';
-import { PlatformId, PlatformName } from '../../domain/value-objects/Platform';
+import { PlatformId } from '../../domain/value-objects/Platform';
 import { Platform } from '../../domain/entities/Platform';
+import { buildPlatform } from '@/lib/platforms';
 
 export class PlatformApiRepository implements PlatformRepository {
   async save(): Promise<void> {
@@ -25,31 +26,10 @@ export class PlatformApiRepository implements PlatformRepository {
 
     const data = await res.json();
 
-    // mapping DTO → dominio (simplificado)
+    // mapping DTO → domain (simplified)
     return data.map(
       //eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (p: any) =>
-        new Platform(
-          new PlatformId(p.id),
-          new PlatformName(p.name).value,
-          // Comprobar si es necesario crear value objects para estos campos
-          // new PlatformCategory(p.category),
-          // new PlatformIconType(p.iconType),
-          // new PlatformIconValue(p.iconValue),
-          // new PlatformBillingCycle(p.billingCycle),
-          p.active,
-          p.category,
-          p.billingCycleOptions,
-          p.billingCycle,
-          p.currentPlanTier,
-          p.renewalDate,
-          p.daysLeft,
-          p.iconType,
-          p.iconValue,
-          p.color,
-          p.glowClass,
-          p.plans,
-        ),
+      (p: any) => buildPlatform(p),
     );
   }
 }
