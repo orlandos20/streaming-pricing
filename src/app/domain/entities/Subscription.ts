@@ -38,7 +38,6 @@ export class SubscriptionPlan {
 export class AudioSubscriptionPlan extends SubscriptionPlan {
   constructor(
     id: SubscriptionPlanId,
-    planTier: string,
     price: number,
     planName: PlanName['value'],
     maxParticipants: MaxParticipants,

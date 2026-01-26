@@ -3,126 +3,32 @@
 import { useMemo, useState } from 'react';
 import { Platform } from '@/app/domain/entities/Platform';
 import PlatformCard from './PlatformCard';
-import DashboardHeader from './dashboard-header';
 import DashboardSummaryCard from './dashboard-summary-card';
 import DashboardCategoryFilters from './dashboard-category-filters';
 import ManagePlanModal from '@/components/ui/manage-plan-modal';
 
-import { PlatformDTO } from '@/app/application/dto/platform-dto';
-import { Country } from '../../../types';
+import { useStreaming } from '@/app/application/contexts/streaming-context';
 
-interface DashboardProps {
-  onSelectPlatform?: (platform: Platform) => void;
-  platformsFromApi: Platform[];
-}
+const Dashboard = () => {
+  const {
+    state: { platforms, country: selectedCountry, categories },
+    setState,
+  } = useStreaming();
 
-const CATEGORIES = [
-  'My subscriptions',
-  'Platforms',
-  'Music',
-  'Video',
-  'Cloud',
-  'SaaS',
-];
-
-// const extraCountries = [
-//   {
-//     countryName: 'France',
-//     countryIcon: '🇫🇷',
-//     countryCode: 'FR',
-//     currency: 'EUR',
-//     currencySymbol: '€',
-//   },
-//   {
-//     countryName: 'Germany',
-//     countryIcon: '🇩🇪',
-//     countryCode: 'DE',
-//     currency: 'EUR',
-//     currencySymbol: '€',
-//   },
-//   {
-//     countryName: 'Italy',
-//     countryIcon: '🇮🇹',
-//     countryCode: 'IT',
-//     currency: 'EUR',
-//     currencySymbol: '€',
-//   },
-//   {
-//     countryName: 'United Kingdom',
-//     countryIcon: '🇬🇧',
-//     countryCode: 'GB',
-//     currency: 'GBP',
-//     currencySymbol: '£',
-//   },
-//   {
-//     countryName: 'Japan',
-//     countryIcon: '🇯🇵',
-//     countryCode: 'JP',
-//     currency: 'JPY',
-//     currencySymbol: '¥',
-//   },
-//   {
-//     countryName: 'Mexico',
-//     countryIcon: '🇲🇽',
-//     countryCode: 'MX',
-//     currency: 'MXN',
-//     currencySymbol: '$',
-//   },
-//   {
-//     countryName: 'Brazil',
-//     countryIcon: '🇧🇷',
-//     countryCode: 'BR',
-//     currency: 'BRL',
-//     currencySymbol: 'R$',
-//   },
-//   {
-//     countryName: 'Australia',
-//     countryIcon: '🇦🇺',
-//     countryCode: 'AU',
-//     currency: 'AUD',
-//     currencySymbol: 'A$',
-//   },
-// ];
-
-const SUPPORTED_COUNTRIES = [
-  {
-    countryName: 'Spain',
-    countryIcon: '🇪🇸',
-    countryCode: 'ES',
-    currency: 'EUR',
-    currencySymbol: '€',
-  },
-  {
-    countryName: 'United States',
-    countryIcon: '🇺🇸',
-    countryCode: 'US',
-    currency: 'USD',
-    currencySymbol: '$',
-  },
-];
-
-const Dashboard: React.FC<DashboardProps> = ({ platformsFromApi }) => {
-  const platforms = PlatformDTO(platformsFromApi);
   const [selectedPlatform, setSelectedPlatform] = useState<Platform>();
-  const [activeCategory, setActiveCategory] = useState<string>(CATEGORIES[1]);
+  const [activeCategory, setActiveCategory] = useState<string>(categories[1]);
   const [showModal, setShowModal] = useState(false);
-  const [selectedCountry, setSelectedCountry] = useState<Country>(
-    SUPPORTED_COUNTRIES[0],
-  );
 
   const filteredPlatforms = useMemo(() => {
-    if (activeCategory === CATEGORIES[1]) return Object.values(platforms);
-    return Object.values(platforms).filter((platform) => {
-      if (activeCategory === CATEGORIES[0]) return platform.active;
+    if (activeCategory === categories[1]) return platforms;
+    return platforms.filter((platform) => {
+      if (activeCategory === categories[0]) return platform.active;
       return platform.category === activeCategory;
     });
-
-    return [];
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeCategory]);
+  }, [activeCategory, platforms, categories]);
 
   const totalMonthly = useMemo(() => {
-    return Object.values(platforms).reduce(
+    return platforms.reduce(
       (acc, { active, currentPlanTier, plans }) =>
         active ? acc + plans[currentPlanTier].price : acc,
       0,
@@ -138,15 +44,86 @@ const Dashboard: React.FC<DashboardProps> = ({ platformsFromApi }) => {
     if (!showModal) setShowModal(true);
   };
 
+  const handleDeactivatePlatform = (selectedPlatform: Platform) => {
+    // Logic to deactivate the platform
+    const newPlatforms = platforms.map((currentPlatform) => {
+      if (currentPlatform.id === selectedPlatform.id) {
+        return new Platform(
+          currentPlatform.id,
+          //eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (currentPlatform as any).name,
+          false, // Set active to false
+          currentPlatform.category,
+          currentPlatform.billingCycleOptions,
+          currentPlatform.billingCycle,
+          currentPlatform.currentPlanTier,
+          currentPlatform.renewalDate,
+          currentPlatform.daysLeft,
+          currentPlatform.iconType,
+          currentPlatform.iconValue,
+          currentPlatform.color,
+          currentPlatform.plans,
+          currentPlatform?.glowClass,
+        );
+      }
+      return currentPlatform;
+    });
+
+    setState((prevState) => ({
+      ...prevState,
+      platforms: newPlatforms,
+    }));
+
+    // setPlatforms(newPlatforms);
+
+    handleCloseModal();
+  };
+
+  const handleSetPlatformAsActive = (
+    selectedPlatform: Platform,
+    selectedPlanTier: string,
+  ) => {
+    console.log('selectedPlatform --> ', selectedPlatform);
+    // Logic to set the platform as active
+    const newPlatforms = platforms.map((currentPlatform) => {
+      if (currentPlatform.id === selectedPlatform.id) {
+        return new Platform(
+          currentPlatform.id,
+          //eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (currentPlatform as any).name,
+          true, // Set active to true
+          currentPlatform.category,
+          currentPlatform.billingCycleOptions,
+          currentPlatform.billingCycle,
+          selectedPlanTier, // Update current plan tier
+          currentPlatform.renewalDate,
+          currentPlatform.daysLeft,
+          currentPlatform.iconType,
+          currentPlatform.iconValue,
+          currentPlatform.color,
+          currentPlatform.plans,
+          currentPlatform?.glowClass,
+        );
+      }
+
+      return currentPlatform;
+    });
+
+    console.log('newPlatforms --> ', newPlatforms);
+
+    setState((prevState) => ({
+      ...prevState,
+      platforms: newPlatforms,
+    }));
+
+    // setPlatforms(newPlatforms);
+
+    // Close the modal after setting the platform as active
+    handleCloseModal();
+  };
+
   return (
     <div className='flex flex-col pb-32'>
-      <DashboardHeader
-        backgroundImage='https://picsum.photos/seed/alex/100/100'
-        userName='Orlando Jimenez'
-        countries={SUPPORTED_COUNTRIES}
-        setSelectedCountry={setSelectedCountry}
-      />
-
       <DashboardSummaryCard
         totalMonthly={totalMonthly}
         nextRenewalDate='March 15, 2024'
@@ -154,7 +131,7 @@ const Dashboard: React.FC<DashboardProps> = ({ platformsFromApi }) => {
       />
 
       <DashboardCategoryFilters
-        categories={CATEGORIES}
+        categories={categories}
         activeCategory={activeCategory}
         setActiveCategory={setActiveCategory}
       />
@@ -183,6 +160,8 @@ const Dashboard: React.FC<DashboardProps> = ({ platformsFromApi }) => {
       {/* Manage Plan Modal Overlay */}
       {showModal && selectedPlatform && (
         <ManagePlanModal
+          handleSetPlatformAsActive={handleSetPlatformAsActive}
+          handleDeactivatePlatform={handleDeactivatePlatform}
           platform={selectedPlatform}
           onClose={() => handleCloseModal()}
         />

@@ -1,12 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  // Subscription,
-  // PLAN_DATA,
-  PlanTier,
-  // BillingCycle,
-} from '../../../types';
+import {} from // Subscription,
+// PLAN_DATA,
+// PlanTier,
+// BillingCycle,
+'../../../types';
 import { PlanOption } from '../ui/plan-option';
 import ActiveBadge from './ActiveBadge';
 import { Platform } from '@/app/domain/entities/Platform';
@@ -14,15 +13,22 @@ import { SubscriptionPlan } from '@/app/domain/entities/Subscription';
 
 interface ManagePlanModalProps {
   platform: Platform;
+  handleSetPlatformAsActive: (
+    platform: Platform,
+    selectedPlanTier: string,
+  ) => void;
+  handleDeactivatePlatform: (platform: Platform) => void;
   onClose: () => void;
 }
 
 const ManagePlanModal: React.FC<ManagePlanModalProps> = ({
   platform,
+  handleSetPlatformAsActive,
+  handleDeactivatePlatform,
   onClose,
 }) => {
   const [selectedPlanTier, setSelectedPlanTier] = useState<string>(
-    PlanTier.STANDARD,
+    platform.currentPlanTier,
   );
 
   // const [isAiLoading, setIsAiLoading] = useState(false);
@@ -103,13 +109,24 @@ const ManagePlanModal: React.FC<ManagePlanModalProps> = ({
         </div>
 
         {/* Confirm Button */}
-        <div className='w-full mt-2'>
-          <button
-            className='w-full py-4 rounded-2xl bg-linear-to-r from-blue-600 via-indigo-600 to-purple-600 text-white font-bold text-lg shadow-xl shadow-blue-500/20 active:scale-[0.98] transition-all border border-white/20'
-            onClick={onClose}
-          >
-            Lo tengo
-          </button>
+        <div className='w-full mt-2 space-y-3'>
+          {!platform.active ? (
+            <button
+              className='w-full py-4 rounded-2xl bg-linear-to-r from-blue-600 via-indigo-600 to-purple-600 text-white font-bold text-lg shadow-xl shadow-blue-500/20 active:scale-[0.98] transition-all border border-white/20'
+              onClick={() =>
+                handleSetPlatformAsActive(platform, selectedPlanTier)
+              }
+            >
+              Lo tengo
+            </button>
+          ) : (
+            <button
+              className='w-full py-4 rounded-2xl bg-linear-to-r from-red-600 via-rose-600 to-pink-600 text-white font-bold text-lg shadow-xl shadow-red-500/20 active:scale-[0.98] transition-all border border-white/20'
+              onClick={() => handleDeactivatePlatform(platform)}
+            >
+              Ya no lo tengo
+            </button>
+          )}
           <p className='text-white/30 text-[9px] text-center mt-6 px-6 uppercase tracking-[0.2em] leading-relaxed font-bold'>
             Changes apply from the next billing cycle on March 15
           </p>

@@ -1,19 +1,14 @@
 import React from 'react';
 import CountrySelect from './country-select';
-import { Country } from '../../../types';
 
 interface DashboardHeaderProps {
   backgroundImage: string;
   userName: string;
-  countries: Country[];
-  setSelectedCountry?: (country: Country) => void;
 }
 
 const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   backgroundImage,
   userName,
-  setSelectedCountry,
-  countries,
 }) => {
   return (
     <div className='sticky top-0 z-40 bg-transparent backdrop-blur-md p-6 pt-12 flex items-center justify-between'>
@@ -31,11 +26,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           <p className='text-sm font-semibold text-white/90'>{userName}</p>
         </div>
       </div>
-      <CountrySelect
-        countries={countries}
-        defaultCountry={countries?.[0]}
-        onChange={setSelectedCountry}
-      />
+      <CountrySelect />
     </div>
   );
 };
